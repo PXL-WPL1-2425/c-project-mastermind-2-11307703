@@ -40,7 +40,7 @@ namespace Mastermind
         private void StopCountDown()
         {
             countDown = 10;
-            timer.Start();
+            timer.Stop();
         }
 
         private void Timer_Tick(object? sender, EventArgs e)
@@ -55,8 +55,7 @@ namespace Mastermind
                 {
                     GameOver();
                     return;
-                }
-                MessageBox.Show("Poging kwijt");
+                }              
                 StopCountDown();
                 UpdateTitle();
             }
@@ -64,14 +63,18 @@ namespace Mastermind
 
         private void InitializeGame()
         {
+            ResetAllColors();
+            totalScore = 100; // Reset score to 100 at the start of the game
+            scoreLabel.Content = $"Score: {totalScore}";
+            attempts = 0;
+            countDown = 10;
+            UpdateTitle();
+            historyPanel.Children.Clear();
             Random number = new Random();
             secretCode = Enumerable.Range(0, 4)
                              .Select(_ => colors[number.Next(colors.Length)])
                              .ToArray();
             cheatCode.Text = string.Join(" ", secretCode);
-            Title = ($"{attempts}");
-            totalScore = 100; 
-            scoreLabel.Content = $"Score: {totalScore}";
         }
 
         private void ControlButton_Click(object sender, RoutedEventArgs e)
@@ -98,6 +101,7 @@ namespace Mastermind
             AddAttemptToHistory(selectedColors);
             UpdateScoreLabel(selectedColors);
             StopCountDown();
+            StartCountDown();
         }
 
         private void CheckGuess(string[] selectedColors)
@@ -135,9 +139,17 @@ namespace Mastermind
 
             if (correctPosition == 4)
             {
-                MessageBox.Show("Gefeliciteerd! Je hebt de code gekraakt!", "Gewonnen");
-                InitializeGame();
-                ResetAllColors();
+                if (MessageBox.Show($"Gefeliciteerd! Je hebt de code gekraakt in {attempts} pogingen! Wil je nog eens spelen?", "WINNER", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
+                {
+                    MainWindow newWindow = new MainWindow();
+                    Application.Current.MainWindow = newWindow;
+                    newWindow.Show();
+                    this.Close();
+                }
+                else
+                {
+                   this.Close();
+                }
                 return;
             }
         }
@@ -173,23 +185,24 @@ namespace Mastermind
             for (int i = 0; i < selectedColors.Length; i++)
             {
                 if (selectedColors[i] == secretCode[i])
-                {                   
+                {
+                    // 0 strafpunten: correcte positie en kleur
                     continue;
                 }
                 else if (secretCode.Contains(selectedColors[i]))
                 {
-                  
+                    // 1 strafpunt: correcte kleur, verkeerde positie
                     scorePenalty += 1;
                 }
                 else
                 {
-                 
+                    // 2 strafpunten: kleur komt niet voor in de code
                     scorePenalty += 2;
                 }
             }
 
             totalScore -= scorePenalty;
-            if (totalScore < 0) totalScore = 0; 
+            if (totalScore < 0) totalScore = 0; // Zorg ervoor dat de score niet negatief wordt
 
             scoreLabel.Content = $"Score: {totalScore}";
         }
@@ -198,21 +211,31 @@ namespace Mastermind
         {
             if (color == secretCode[index])
             {
-                return Brushes.DarkRed; 
+                return Brushes.DarkRed; // Correcte positie en kleur
             }
             else if (secretCode.Contains(color))
             {
-                return Brushes.Wheat; 
+                return Brushes.Wheat; // Correcte kleur, verkeerde positie
             }
             else
             {
-                return Brushes.Transparent; 
+                return Brushes.Transparent; // Onjuiste kleur
             }
         }
 
         private void UpdateTitle()
         {
             this.Title = $"Poging {attempts}";
+        }
+
+        private void ResetGame()
+        {
+            totalScore = 100;
+            attempts = 0;
+            historyPanel.Children.Clear();
+            ResetAllColors();
+            UpdateTitle();
+            InitializeGame();
         }
 
         private void ResetAllColors()
@@ -277,11 +300,14 @@ namespace Mastermind
         private void GameOver()
         {
             timer.Stop();
-            MessageBox.Show("Spel afgelopen, je hebt 10 pogingen gehaald", "Game over");
-            InitializeGame();
-            ResetAllColors();
-            historyPanel.Children.Clear();
-            attempts = 0;
+            if (MessageBox.Show($"Je hebt de code niet gekraakt. De correcte code was: {string.Join(", ", secretCode)}. Nog eens proberen?", "FAILED", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                InitializeGame();
+            }
+            else
+            {
+                this.Close();
+            }
         }
 
         private Brush GetBrushFromColorName(string colorName)
