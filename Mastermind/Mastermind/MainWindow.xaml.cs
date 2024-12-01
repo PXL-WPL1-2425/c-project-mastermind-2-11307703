@@ -20,6 +20,7 @@ namespace Mastermind
 
         int attempts = 0;
         int countDown = 10;
+        int totalScore = 100;
 
         public MainWindow()
         {
@@ -69,6 +70,8 @@ namespace Mastermind
                              .ToArray();
             cheatCode.Text = string.Join(" ", secretCode);
             Title = ($"{attempts}");
+            totalScore = 100; 
+            scoreLabel.Content = $"Score: {totalScore}";
         }
 
         private void ControlButton_Click(object sender, RoutedEventArgs e)
@@ -93,6 +96,7 @@ namespace Mastermind
 
             CheckGuess(selectedColors);
             AddAttemptToHistory(selectedColors);
+            UpdateScoreLabel(selectedColors);
             StopCountDown();
         }
 
@@ -162,19 +166,47 @@ namespace Mastermind
             historyPanel.Children.Add(attemptPanel);
         }
 
+        private void UpdateScoreLabel(string[] selectedColors)
+        {
+            int scorePenalty = 0;
+
+            for (int i = 0; i < selectedColors.Length; i++)
+            {
+                if (selectedColors[i] == secretCode[i])
+                {                   
+                    continue;
+                }
+                else if (secretCode.Contains(selectedColors[i]))
+                {
+                  
+                    scorePenalty += 1;
+                }
+                else
+                {
+                 
+                    scorePenalty += 2;
+                }
+            }
+
+            totalScore -= scorePenalty;
+            if (totalScore < 0) totalScore = 0; 
+
+            scoreLabel.Content = $"Score: {totalScore}";
+        }
+
         private Brush GetFeedbackBorder(string color, int index)
         {
             if (color == secretCode[index])
             {
-                return Brushes.DarkRed; // Correcte positie en kleur
+                return Brushes.DarkRed; 
             }
             else if (secretCode.Contains(color))
             {
-                return Brushes.Wheat; // Correcte kleur, verkeerde positie
+                return Brushes.Wheat; 
             }
             else
             {
-                return Brushes.Transparent; // Onjuiste kleur
+                return Brushes.Transparent; 
             }
         }
 
@@ -248,7 +280,7 @@ namespace Mastermind
             MessageBox.Show("Spel afgelopen, je hebt 10 pogingen gehaald", "Game over");
             InitializeGame();
             ResetAllColors();
-            historyPanel.Children.Clear(); // Geschiedenis wissen na een nieuw spel
+            historyPanel.Children.Clear();
             attempts = 0;
         }
 
