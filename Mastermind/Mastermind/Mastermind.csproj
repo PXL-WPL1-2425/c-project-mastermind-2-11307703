@@ -8,4 +8,12 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="pexels-instawally-176851.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\pexels-instawally-176851.jpg" />
+  </ItemGroup>
+
 </Project>
