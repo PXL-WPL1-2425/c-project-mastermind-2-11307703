@@ -27,6 +27,7 @@ namespace Mastermind
             InitializeComponent();
             InitializeGame();
             StartCountDown();
+            this.Closing += MainWindow_Closing;
         }
 
         private void StartCountDown()
@@ -64,7 +65,7 @@ namespace Mastermind
         private void InitializeGame()
         {
             ResetAllColors();
-            totalScore = 100; // Reset score to 100 at the start of the game
+            totalScore = 100;
             scoreLabel.Content = $"Score: {totalScore}";
             attempts = 0;
             countDown = 10;
@@ -186,23 +187,20 @@ namespace Mastermind
             {
                 if (selectedColors[i] == secretCode[i])
                 {
-                    // 0 strafpunten: correcte positie en kleur
                     continue;
                 }
                 else if (secretCode.Contains(selectedColors[i]))
                 {
-                    // 1 strafpunt: correcte kleur, verkeerde positie
                     scorePenalty += 1;
                 }
                 else
-                {
-                    // 2 strafpunten: kleur komt niet voor in de code
+                {                
                     scorePenalty += 2;
                 }
             }
 
             totalScore -= scorePenalty;
-            if (totalScore < 0) totalScore = 0; // Zorg ervoor dat de score niet negatief wordt
+            if (totalScore < 0) totalScore = 0; 
 
             scoreLabel.Content = $"Score: {totalScore}";
         }
@@ -211,21 +209,21 @@ namespace Mastermind
         {
             if (color == secretCode[index])
             {
-                return Brushes.DarkRed; // Correcte positie en kleur
+                return Brushes.DarkRed; 
             }
             else if (secretCode.Contains(color))
             {
-                return Brushes.Wheat; // Correcte kleur, verkeerde positie
+                return Brushes.Wheat; 
             }
             else
             {
-                return Brushes.Transparent; // Onjuiste kleur
+                return Brushes.Transparent; 
             }
         }
 
         private void UpdateTitle()
         {
-            this.Title = $"Poging {attempts}";
+            this.Title = $"Poging {attempts}/10";
         }
 
         private void ResetGame()
@@ -322,6 +320,14 @@ namespace Mastermind
                 "Blue" => Brushes.Blue,
                 _ => Brushes.Transparent
             };
+        }
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show("Wilt u het spel vroegtijdig beëindigen?", this.Title, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (result == MessageBoxResult.No)
+            {
+                e.Cancel = true;
+            }
         }
     }
 }
